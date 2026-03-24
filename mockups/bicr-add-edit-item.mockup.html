@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>BICR Ops — Add / Edit Item</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{--teal:#006373;--navy:#023d5b;--orange:#F8B457;--charcoal:#434C53;--g50:#f8f9fa;--g100:#f1f3f5;--g200:#e9ecef;--g300:#dee2e6;--g400:#ced4da;--g600:#868e96;--red:#e03131}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:var(--g100);color:var(--charcoal);font-size:13px}
+.topnav{background:var(--navy);height:56px;display:flex;align-items:center;padding:0 24px;gap:24px}
+.logo{width:32px;height:32px;background:var(--orange);border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:800;color:var(--navy)}
+.brand-title{font-size:15px;font-weight:700;color:#fff}
+.brand-sub{font-size:10px;color:rgba(255,255,255,.45);text-transform:uppercase;letter-spacing:.08em}
+.avatar{width:32px;height:32px;background:var(--teal);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#fff;border:2px solid rgba(255,255,255,.2);margin-left:auto}
+.page{max-width:760px;margin:28px auto;padding:0 16px 48px}
+.breadcrumb{font-size:12px;color:var(--g600);margin-bottom:14px}
+.breadcrumb a{color:var(--teal);cursor:pointer}
+.page-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:24px}
+.page-hdr h1{font-size:20px;font-weight:700;color:var(--navy)}
+.badge-edit{background:#e7f5ff;color:#1971c2;font-size:11px;font-weight:700;padding:3px 10px;border-radius:20px;margin-left:10px}
+.card{background:#fff;border:1px solid var(--g200);border-radius:10px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.05);margin-bottom:16px}
+.sec-hdr{padding:14px 20px;border-bottom:1px solid var(--g200);background:var(--g50);display:flex;align-items:center;gap:8px}
+.sec-title{font-size:13px;font-weight:700;color:var(--charcoal)}
+.sec-desc{font-size:11px;color:var(--g600);margin-left:auto}
+.form-body{padding:20px}
+.field-row{display:grid;gap:14px;margin-bottom:16px}
+.field-row.cols-2{grid-template-columns:1fr 1fr}
+.field-row.cols-3{grid-template-columns:1fr 1fr 1fr}
+.field{}
+.flbl{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--g600);margin-bottom:5px;display:block}
+.finput{width:100%;border:1.5px solid var(--g300);border-radius:6px;padding:8px 11px;font-size:13px;color:var(--charcoal);outline:none;font-family:inherit;background:#fff}
+.finput:focus{border-color:var(--teal);background:#f0f9fa}
+.fselect{width:100%;border:1.5px solid var(--g300);border-radius:6px;padding:8px 11px;font-size:13px;color:var(--charcoal);outline:none;font-family:inherit;background:#fff;cursor:pointer;appearance:none}
+.ftextarea{width:100%;border:1.5px solid var(--g300);border-radius:6px;padding:8px 11px;font-size:13px;color:var(--charcoal);outline:none;font-family:inherit;resize:none;height:72px}
+.finput-group{display:flex;gap:0}
+.finput-group .finput{border-radius:6px 0 0 6px;flex:1}
+.finput-group .fselect{border-radius:0 6px 6px 0;border-left:none;width:120px;flex-shrink:0}
+.field-hint{font-size:11px;color:var(--g600);margin-top:4px}
+.required{color:var(--red);margin-left:2px}
+.action-type-row{display:flex;gap:0;margin-bottom:10px}
+.at-btn{flex:1;padding:8px;border:1.5px solid var(--g300);background:var(--g50);font-size:12px;font-weight:600;color:var(--g600);cursor:pointer;text-align:center}
+.at-btn:first-child{border-radius:6px 0 0 6px}
+.at-btn:last-child{border-radius:0 6px 6px 0}
+.at-btn.active{background:var(--teal);border-color:var(--teal);color:#fff}
+.preview-link{font-size:11px;color:var(--teal);margin-top:4px;cursor:pointer}
+.footer-actions{display:flex;gap:10px;justify-content:flex-end;padding:16px 20px;border-top:1px solid var(--g200);background:var(--g50)}
+.btn-cancel{background:#fff;color:var(--charcoal);border:1.5px solid var(--g300);border-radius:7px;padding:9px 20px;font-size:13px;font-weight:600;cursor:pointer}
+.btn-save{background:var(--teal);color:#fff;border:none;border-radius:7px;padding:9px 24px;font-size:13px;font-weight:700;cursor:pointer}
+.btn-archive{background:#fff;color:var(--red);border:1.5px solid #ffa8a8;border-radius:7px;padding:9px 16px;font-size:13px;font-weight:600;cursor:pointer;margin-right:auto}
+</style>
+</head>
+<body>
+<nav class="topnav">
+  <div class="logo">B</div>
+  <div><div class="brand-title">BICR Operations</div><div class="brand-sub">Item Management</div></div>
+  <div class="avatar">KS</div>
+</nav>
+
+<div class="page">
+  <div class="breadcrumb"><a>← Inventory</a> / Edit Item</div>
+  <div class="page-hdr">
+    <div><h1>BICR 8oz Bags <span class="badge-edit">Editing</span></h1></div>
+  </div>
+
+  <!-- Basic Info -->
+  <div class="card">
+    <div class="sec-hdr">
+      <span class="sec-title">Basic Info</span>
+    </div>
+    <div class="form-body">
+      <div class="field-row cols-2">
+        <div class="field">
+          <label class="flbl">Item Name <span class="required">*</span></label>
+          <input class="finput" value="BICR 8oz Bags" />
+        </div>
+        <div class="field">
+          <label class="flbl">Category <span class="required">*</span></label>
+          <select class="fselect"><option selected>Bags</option><option>Shipping</option><option>Labels</option><option>Packaging</option><option>Clothing</option><option>Merch</option></select>
+        </div>
+      </div>
+      <div class="field-row cols-2">
+        <div class="field">
+          <label class="flbl">Unit Label <span class="required">*</span></label>
+          <input class="finput" value="boxes" placeholder="e.g. boxes, rolls, units" />
+          <div class="field-hint">How this item's quantity is measured</div>
+        </div>
+        <div class="field">
+          <label class="flbl">Units per Package</label>
+          <input class="finput" value="1000" type="number" />
+          <div class="field-hint">e.g. 1000 bags per box</div>
+        </div>
+      </div>
+      <div class="field-row">
+        <div class="field">
+          <label class="flbl">Assigned To <span class="required">*</span></label>
+          <select class="fselect"><option selected>Kelleigh</option><option>Brandon</option><option>Lora</option><option>Listel</option><option>Toivo</option></select>
+          <div class="field-hint">Person responsible for reordering this item</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Inventory Thresholds -->
+  <div class="card">
+    <div class="sec-hdr">
+      <span class="sec-title">Inventory Thresholds</span>
+      <span class="sec-desc">Used to calculate depletion date and trigger alerts</span>
+    </div>
+    <div class="form-body">
+      <div class="field-row cols-3">
+        <div class="field">
+          <label class="flbl">Burn Rate</label>
+          <div class="finput-group">
+            <input class="finput" value="6" type="number" placeholder="e.g. 6" />
+            <select class="fselect"><option>/ month</option><option>/ week</option><option>/ day</option></select>
+          </div>
+          <div class="field-hint">Leave blank if unknown</div>
+        </div>
+        <div class="field">
+          <label class="flbl">Reorder Point</label>
+          <input class="finput" value="30" type="number" placeholder="e.g. 30" />
+          <div class="field-hint">Alert fires at or below this quantity</div>
+        </div>
+        <div class="field">
+          <label class="flbl">Lead Time (days)</label>
+          <input class="finput" value="180" type="number" placeholder="e.g. 180" />
+          <div class="field-hint">Days from order to receipt</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Vendor -->
+  <div class="card">
+    <div class="sec-hdr">
+      <span class="sec-title">Vendor</span>
+    </div>
+    <div class="form-body">
+      <div class="field-row cols-2">
+        <div class="field">
+          <label class="flbl">Vendor <span class="required">*</span></label>
+          <select class="fselect"><option selected>SAVOR</option><option>Amazon</option><option>FedEx</option><option>USPS</option><option>Primera</option><option>Veritiv</option><option>+ Add new vendor</option></select>
+        </div>
+        <div class="field">
+          <label class="flbl">Override Lead Time</label>
+          <input class="finput" value="180" type="number" placeholder="Defaults to vendor default" />
+          <div class="field-hint">Overrides SAVOR default (180 days)</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Reorder Action -->
+  <div class="card">
+    <div class="sec-hdr">
+      <span class="sec-title">Reorder Action</span>
+      <span class="sec-desc">What happens when the Order button is clicked</span>
+    </div>
+    <div class="form-body">
+      <label class="flbl">Action Type</label>
+      <div class="action-type-row">
+        <div class="at-btn">None</div>
+        <div class="at-btn active">Open URL</div>
+        <div class="at-btn">Send Email</div>
+      </div>
+      <div class="field">
+        <label class="flbl">Reorder URL</label>
+        <input class="finput" value="https://savorbrands.com/reorder" />
+        <div class="preview-link">↗ Test this link</div>
+        <div class="field-hint">Opens in a new tab when team member clicks Order</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Notes -->
+  <div class="card">
+    <div class="sec-hdr"><span class="sec-title">Notes</span></div>
+    <div class="form-body">
+      <textarea class="ftextarea" placeholder="Internal notes about this item, order history context, special instructions…">Standard BICR bag — Roto print, 6-month lead time. Check stock 7 months before projected depletion.</textarea>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <div class="card">
+    <div class="footer-actions">
+      <button class="btn-archive">Archive Item</button>
+      <button class="btn-cancel">Cancel</button>
+      <button class="btn-save">Save Changes</button>
+    </div>
+  </div>
+
+</div>
+</body>
+</html>

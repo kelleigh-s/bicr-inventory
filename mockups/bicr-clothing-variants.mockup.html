@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>BICR Ops — Clothing Variant View</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{--teal:#006373;--navy:#023d5b;--orange:#F8B457;--charcoal:#434C53;--g50:#f8f9fa;--g100:#f1f3f5;--g200:#e9ecef;--g300:#dee2e6;--g400:#ced4da;--g600:#868e96;--g700:#495057;--red:#e03131}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:var(--g100);color:var(--charcoal);font-size:13px}
+.topnav{background:var(--navy);height:56px;display:flex;align-items:center;padding:0 24px;gap:32px}
+.brand{display:flex;align-items:center;gap:10px}
+.logo{width:32px;height:32px;background:var(--orange);border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:800;color:var(--navy)}
+.brand-title{font-size:15px;font-weight:700;color:#fff}
+.brand-sub{font-size:10px;color:rgba(255,255,255,.45);text-transform:uppercase;letter-spacing:.08em}
+.tab{display:flex;align-items:center;gap:7px;padding:7px 16px;border-radius:6px;font-size:13px;font-weight:500;color:rgba(255,255,255,.55)}
+.tab.active{background:rgba(255,255,255,.12);color:#fff}
+.badge{background:var(--red);color:#fff;font-size:10px;font-weight:700;border-radius:10px;padding:1px 6px}
+.avatar{width:32px;height:32px;background:var(--teal);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#fff;border:2px solid rgba(255,255,255,.2);margin-left:auto}
+.page{padding:24px}
+.breadcrumb{font-size:12px;color:var(--g600);margin-bottom:12px}
+.breadcrumb a{color:var(--teal);cursor:pointer}
+.page-hdr{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:20px}
+.page-hdr h1{font-size:20px;font-weight:700;color:var(--navy);margin-bottom:3px}
+.page-hdr p{font-size:12px;color:var(--g600)}
+.pill{display:inline-block;padding:2px 9px;border-radius:20px;font-size:11px;font-weight:600;background:#e8f5e9;color:#2e7d32;margin-left:8px}
+.btn-primary{background:var(--teal);color:#fff;border:none;border-radius:7px;padding:9px 18px;font-size:13px;font-weight:600;cursor:pointer}
+.card{background:#fff;border:1px solid var(--g200);border-radius:10px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.05);margin-bottom:20px}
+.card-hdr{padding:14px 18px;border-bottom:1px solid var(--g200);background:var(--g50);display:flex;align-items:center;justify-content:space-between}
+.card-title{font-size:13px;font-weight:700;color:var(--charcoal)}
+.card-sub{font-size:11px;color:var(--g600);margin-top:1px}
+.loc-toggle{display:flex;gap:0}
+.loc-btn{padding:5px 14px;font-size:12px;font-weight:600;border:1px solid var(--g300);background:var(--g50);color:var(--g600);cursor:pointer}
+.loc-btn:first-child{border-radius:6px 0 0 6px}
+.loc-btn:last-child{border-radius:0 6px 6px 0;border-left:none}
+.loc-btn.active{background:var(--teal);color:#fff;border-color:var(--teal)}
+.matrix-wrap{padding:18px}
+.matrix-label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--g600);margin-bottom:10px}
+table{width:100%;border-collapse:collapse}
+.matrix-table th{padding:8px 12px;text-align:center;font-size:11px;font-weight:700;color:var(--g600);text-transform:uppercase;letter-spacing:.05em;background:var(--g50);border:1px solid var(--g200)}
+.matrix-table th.row-head{text-align:left;width:80px}
+.matrix-table td{padding:6px;border:1px solid var(--g200);text-align:center;vertical-align:middle}
+.matrix-table td.size-lbl{font-size:12px;font-weight:700;color:var(--charcoal);background:var(--g50);text-align:left;padding:8px 12px}
+.qty-input{width:64px;border:1.5px solid var(--g300);border-radius:5px;padding:5px 8px;font-size:13px;font-weight:600;text-align:center;color:var(--navy);background:#fff;outline:none}
+.qty-input:focus{border-color:var(--teal);background:#f0f9fa}
+.qty-zero{color:var(--g400)}
+.row-total{font-size:12px;font-weight:700;color:var(--charcoal);padding:8px 12px;background:var(--g50)}
+.col-total{font-size:12px;font-weight:700;color:var(--charcoal);background:var(--g100)}
+.grand-total{background:var(--teal);color:#fff;font-weight:700}
+.info-bar{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;padding:16px 18px;border-top:1px solid var(--g200);background:var(--g50)}
+.info-item{}
+.info-lbl{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--g600);margin-bottom:3px}
+.info-val{font-size:15px;font-weight:700;color:var(--navy)}
+.info-val.ok{color:#2f9e44}
+.items-list{padding:0}
+.item-row{display:flex;align-items:center;gap:12px;padding:14px 18px;border-bottom:1px solid var(--g100);cursor:pointer}
+.item-row:hover{background:var(--g50)}
+.item-row.active{background:#e8f6f8;border-left:3px solid var(--teal)}
+.item-name{font-weight:600;color:var(--navy);flex:1}
+.item-total{font-size:13px;font-weight:700;color:var(--charcoal)}
+.item-sub{font-size:11px;color:var(--g600)}
+</style>
+</head>
+<body>
+<nav class="topnav">
+  <div class="brand">
+    <div class="logo">B</div>
+    <div><div class="brand-title">BICR Operations</div><div class="brand-sub">Big Island Coffee Roasters</div></div>
+  </div>
+  <div class="tab active" style="margin-left:24px">Inventory <span class="badge">3</span></div>
+  <div class="tab" style="opacity:.35">SOPs</div>
+  <div class="tab" style="opacity:.35">Team</div>
+  <div class="avatar">KS</div>
+</nav>
+
+<div class="page">
+  <div class="breadcrumb"><a>← Inventory</a> / Clothing</div>
+  <div class="page-hdr">
+    <div>
+      <h1>Clothing Inventory <span class="pill">Clothing</span></h1>
+      <p>Size × location matrix — edit cells inline to update counts</p>
+    </div>
+    <button class="btn-primary">✎ Update All Counts</button>
+  </div>
+
+  <!-- Item selector + matrix -->
+  <div style="display:grid;grid-template-columns:220px 1fr;gap:16px">
+
+    <!-- Item list -->
+    <div class="card" style="margin-bottom:0">
+      <div class="card-hdr"><span class="card-title">Items</span></div>
+      <div class="items-list">
+        <div class="item-row active">
+          <div><div class="item-name">Explorer Shirts</div><div class="item-sub">Blue & Grey</div></div>
+          <div style="text-align:right"><div class="item-total">213</div><div class="item-sub">units</div></div>
+        </div>
+        <div class="item-row">
+          <div><div class="item-name">Organic Explorer</div><div class="item-sub">Green</div></div>
+          <div style="text-align:right"><div class="item-total">144</div><div class="item-sub">units</div></div>
+        </div>
+        <div class="item-row">
+          <div><div class="item-name">Zip Hoodie</div><div class="item-sub">NEW</div></div>
+          <div style="text-align:right"><div class="item-total">109</div><div class="item-sub">units</div></div>
+        </div>
+        <div class="item-row">
+          <div><div class="item-name">Dri-Fit Tank</div><div class="item-sub"></div></div>
+          <div style="text-align:right"><div class="item-total">48</div><div class="item-sub">units</div></div>
+        </div>
+        <div class="item-row">
+          <div><div class="item-name">Rainbow Boar V-Neck</div><div class="item-sub"></div></div>
+          <div style="text-align:right"><div class="item-total">16</div><div class="item-sub">units</div></div>
+        </div>
+        <div class="item-row">
+          <div><div class="item-name">Zip Hoodie</div><div class="item-sub">OG</div></div>
+          <div style="text-align:right"><div class="item-total">5</div><div class="item-sub">units</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Matrix -->
+    <div class="card" style="margin-bottom:0">
+      <div class="card-hdr">
+        <div>
+          <div class="card-title">Big Island Explorer Shirts — Blue & Grey</div>
+          <div class="card-sub">Last counted: Mar 15, 2026 by Kaelyn Birch</div>
+        </div>
+        <div class="loc-toggle">
+          <div class="loc-btn active">Both</div>
+          <div class="loc-btn">Storage</div>
+          <div class="loc-btn">Café</div>
+        </div>
+      </div>
+
+      <div class="matrix-wrap">
+        <div class="matrix-label">Quantity by Size × Location — click any cell to edit</div>
+        <table class="matrix-table">
+          <thead>
+            <tr>
+              <th class="row-head">Size</th>
+              <th>Storage</th>
+              <th>Café</th>
+              <th style="background:var(--g100)">Total</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="size-lbl">XS</td>
+              <td><input class="qty-input" value="34" /></td>
+              <td><input class="qty-input" value="5" /></td>
+              <td class="row-total">39</td>
+            </tr>
+            <tr>
+              <td class="size-lbl">S</td>
+              <td><input class="qty-input" value="3" /></td>
+              <td><input class="qty-input" value="3" /></td>
+              <td class="row-total">6</td>
+            </tr>
+            <tr>
+              <td class="size-lbl">M</td>
+              <td><input class="qty-input" value="48" /></td>
+              <td><input class="qty-input" value="5" /></td>
+              <td class="row-total">53</td>
+            </tr>
+            <tr>
+              <td class="size-lbl">L</td>
+              <td><input class="qty-input" value="17" /></td>
+              <td><input class="qty-input" value="4" /></td>
+              <td class="row-total">21</td>
+            </tr>
+            <tr>
+              <td class="size-lbl">XL</td>
+              <td><input class="qty-input" value="36" /></td>
+              <td><input class="qty-input" value="5" /></td>
+              <td class="row-total">41</td>
+            </tr>
+            <tr>
+              <td class="size-lbl">2XL</td>
+              <td><input class="qty-input" value="12" /></td>
+              <td><input class="qty-input" value="4" /></td>
+              <td class="row-total">16</td>
+            </tr>
+            <tr>
+              <td class="size-lbl">3XL</td>
+              <td><input class="qty-input qty-zero" value="5" /></td>
+              <td><input class="qty-input qty-zero" value="8" /></td>
+              <td class="row-total">13</td>
+            </tr>
+            <tr>
+              <td class="size-lbl" style="font-weight:700;color:var(--teal)">Total</td>
+              <td class="col-total">155</td>
+              <td class="col-total">34</td>
+              <td class="grand-total">189</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="info-bar">
+        <div class="info-item"><div class="info-lbl">Total Units</div><div class="info-val">189</div></div>
+        <div class="info-item"><div class="info-lbl">In Storage</div><div class="info-val">155</div></div>
+        <div class="info-item"><div class="info-lbl">In Café</div><div class="info-val">34</div></div>
+        <div class="info-item"><div class="info-lbl">Status</div><div class="info-val ok">OK</div></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+</body>
+</html>

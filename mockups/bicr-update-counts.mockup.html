@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>BICR Ops — Update Counts</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{--teal:#006373;--teal-dk:#004e5c;--navy:#023d5b;--orange:#F8B457;--charcoal:#434C53;--g50:#f8f9fa;--g100:#f1f3f5;--g200:#e9ecef;--g300:#dee2e6;--g400:#ced4da;--g600:#868e96}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:var(--g100);color:var(--charcoal);font-size:13px}
+.topnav{background:var(--navy);height:56px;display:flex;align-items:center;padding:0 24px;gap:24px}
+.logo{width:32px;height:32px;background:var(--orange);border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:800;color:var(--navy)}
+.brand-title{font-size:15px;font-weight:700;color:#fff}
+.brand-sub{font-size:10px;color:rgba(255,255,255,.45);text-transform:uppercase;letter-spacing:.08em}
+.avatar{width:32px;height:32px;background:var(--teal);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#fff;border:2px solid rgba(255,255,255,.2);margin-left:auto}
+.flow{max-width:640px;margin:32px auto;padding:0 16px}
+.flow-hdr{text-align:center;margin-bottom:28px}
+.flow-hdr h1{font-size:22px;font-weight:700;color:var(--navy);margin-bottom:6px}
+.flow-hdr p{font-size:13px;color:var(--g600)}
+.progress-bar-wrap{background:var(--g200);border-radius:20px;height:6px;margin-bottom:8px}
+.progress-bar{background:var(--teal);height:6px;border-radius:20px;width:33%}
+.progress-label{display:flex;justify-content:space-between;font-size:11px;color:var(--g600);margin-bottom:24px}
+.progress-label strong{color:var(--charcoal)}
+.cat-indicator{display:flex;gap:8px;margin-bottom:20px;justify-content:center}
+.cat-dot{display:flex;align-items:center;gap:5px;font-size:11px;font-weight:600;color:var(--g600)}
+.cat-dot .dot{width:8px;height:8px;border-radius:50%;background:var(--g300)}
+.cat-dot.done .dot{background:var(--teal)}
+.cat-dot.active .dot{background:var(--orange);box-shadow:0 0 0 3px rgba(248,180,87,.3)}
+.cat-dot.active{color:var(--charcoal)}
+.card{background:#fff;border:1px solid var(--g200);border-radius:12px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,.06)}
+.card-top{padding:20px 24px 16px;border-bottom:1px solid var(--g100)}
+.cat-badge{display:inline-block;padding:2px 10px;border-radius:20px;font-size:11px;font-weight:700;background:#fff3e0;color:#e65100;margin-bottom:10px}
+.item-name{font-size:20px;font-weight:700;color:var(--navy);margin-bottom:4px}
+.item-meta{font-size:12px;color:var(--g600)}
+.item-meta strong{color:var(--charcoal)}
+.card-body{padding:24px}
+.last-count-row{display:flex;align-items:center;gap:16px;background:var(--g50);border:1px solid var(--g200);border-radius:8px;padding:12px 16px;margin-bottom:20px}
+.lc-icon{font-size:22px}
+.lc-label{font-size:11px;color:var(--g600);font-weight:600;text-transform:uppercase;letter-spacing:.05em;margin-bottom:2px}
+.lc-val{font-size:15px;font-weight:700;color:var(--charcoal)}
+.lc-date{font-size:11px;color:var(--g600);margin-left:auto;text-align:right}
+.input-section{}
+.input-label{font-size:12px;font-weight:700;color:var(--charcoal);margin-bottom:8px;display:block}
+.count-input-wrap{display:flex;align-items:center;gap:12px;margin-bottom:16px}
+.count-input{border:2px solid var(--teal);border-radius:8px;padding:12px 16px;font-size:22px;font-weight:700;color:var(--navy);width:160px;text-align:center;outline:none;background:#f0f9fa}
+.unit-label{font-size:14px;color:var(--g600)}
+.note-input{width:100%;border:1.5px solid var(--g300);border-radius:7px;padding:9px 12px;font-size:13px;color:var(--charcoal);outline:none;font-family:inherit;resize:none;height:68px}
+.note-input:focus{border-color:var(--teal)}
+.card-footer{padding:16px 24px;border-top:1px solid var(--g100);display:flex;gap:10px;align-items:center}
+.btn-submit{flex:1;background:var(--teal);color:#fff;border:none;border-radius:8px;padding:11px;font-size:14px;font-weight:700;cursor:pointer}
+.btn-skip{background:#fff;color:var(--g600);border:1.5px solid var(--g300);border-radius:8px;padding:11px 18px;font-size:13px;font-weight:600;cursor:pointer}
+.name-bar{background:#fff8ec;border:1.5px solid var(--orange);border-radius:8px;padding:10px 16px;margin-bottom:20px;display:flex;align-items:center;gap:10px;font-size:13px;color:#7c5000}
+.name-bar strong{font-weight:700}
+.name-edit{color:var(--teal);font-weight:600;cursor:pointer;margin-left:auto;font-size:12px}
+</style>
+</head>
+<body>
+<nav class="topnav">
+  <div class="logo">B</div>
+  <div><div class="brand-title">BICR Operations</div><div class="brand-sub">Update Counts</div></div>
+  <div class="avatar">KS</div>
+</nav>
+
+<div class="flow">
+  <div class="flow-hdr">
+    <h1>Update Counts</h1>
+    <p>Step through each item and enter your current stock. You can skip items and come back.</p>
+  </div>
+
+  <div class="name-bar">
+    👤 Counting as <strong>Kelleigh Stewart</strong>
+    <span class="name-edit">Change</span>
+  </div>
+
+  <div class="progress-bar-wrap"><div class="progress-bar"></div></div>
+  <div class="progress-label"><span>Item <strong>4</strong> of <strong>12</strong></span><span>Bags · 2 of 4</span></div>
+
+  <div class="cat-indicator">
+    <div class="cat-dot done"><span class="dot"></span>Bags</div>
+    <div style="color:var(--g300);font-size:11px;align-self:center">→</div>
+    <div class="cat-dot active"><span class="dot"></span>Shipping</div>
+    <div style="color:var(--g300);font-size:11px;align-self:center">→</div>
+    <div class="cat-dot"><span class="dot"></span>Labels</div>
+    <div style="color:var(--g300);font-size:11px;align-self:center">→</div>
+    <div class="cat-dot"><span class="dot"></span>Packaging</div>
+  </div>
+
+  <div class="card">
+    <div class="card-top">
+      <div class="cat-badge">Shipping</div>
+      <div class="item-name">FedEx Padded Pak</div>
+      <div class="item-meta">Vendor: <strong>FedEx</strong> · Reorder point: <strong>10 boxes</strong> · Lead time: <strong>2 weeks</strong></div>
+    </div>
+
+    <div class="card-body">
+      <div class="last-count-row">
+        <div class="lc-icon">📦</div>
+        <div>
+          <div class="lc-label">Last Known Count</div>
+          <div class="lc-val">21 boxes</div>
+        </div>
+        <div class="lc-date">Last counted<br><strong>Mar 1, 2026</strong></div>
+      </div>
+
+      <label class="input-label">New count today</label>
+      <div class="count-input-wrap">
+        <input class="count-input" value="18" type="number" />
+        <span class="unit-label">boxes</span>
+      </div>
+
+      <label class="input-label">Note (optional)</label>
+      <textarea class="note-input" placeholder="e.g. 'Counted with Brandon, 2 opened boxes not included'"></textarea>
+    </div>
+
+    <div class="card-footer">
+      <button class="btn-skip">Skip →</button>
+      <button class="btn-submit">Save Count &amp; Continue →</button>
+    </div>
+  </div>
+
+</div>
+</body>
+</html>

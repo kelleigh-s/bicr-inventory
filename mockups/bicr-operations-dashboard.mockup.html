@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>BICR Ops — Inventory Dashboard</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --teal:#006373;--teal-dk:#004e5c;--navy:#023d5b;--orange:#F8B457;
+  --charcoal:#434C53;--white:#fff;
+  --g50:#f8f9fa;--g100:#f1f3f5;--g200:#e9ecef;--g300:#dee2e6;--g400:#ced4da;--g600:#868e96;--g700:#495057;
+  --red:#e03131;--red-lt:#fff5f5;--green:#2f9e44;--blue:#1971c2;
+  --ok-bg:#ebfbee;--ok-tx:#2f9e44;--ro-bg:#fff5f5;--ro-tx:#e03131;--oo-bg:#e7f5ff;--oo-tx:#1971c2;
+}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:var(--g100);color:var(--charcoal);font-size:13px}
+.topnav{background:var(--navy);height:56px;display:flex;align-items:center;padding:0 24px;gap:32px;box-shadow:0 2px 8px rgba(0,0,0,.18)}
+.brand{display:flex;align-items:center;gap:10px;margin-right:8px}
+.logo{width:32px;height:32px;background:var(--orange);border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:800;color:var(--navy)}
+.brand-title{font-size:15px;font-weight:700;color:#fff}
+.brand-sub{font-size:10px;color:rgba(255,255,255,.45);text-transform:uppercase;letter-spacing:.08em}
+.nav-tabs{display:flex;gap:2px;flex:1}
+.tab{display:flex;align-items:center;gap:7px;padding:7px 16px;border-radius:6px;font-size:13px;font-weight:500;color:rgba(255,255,255,.55);cursor:pointer}
+.tab.active{background:rgba(255,255,255,.12);color:#fff}
+.tab.dim{opacity:.35}
+.badge{background:var(--red);color:#fff;font-size:10px;font-weight:700;border-radius:10px;padding:1px 6px;line-height:16px}
+.nav-right{display:flex;align-items:center;gap:14px;margin-left:auto}
+.ts{font-size:11px;color:rgba(255,255,255,.4)}
+.avatar{width:32px;height:32px;background:var(--teal);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#fff;border:2px solid rgba(255,255,255,.2)}
+.page{display:flex;height:calc(100vh - 56px);overflow:hidden}
+.main{flex:1;overflow-y:auto;padding:20px 24px}
+.page-hdr{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:16px}
+.page-hdr h1{font-size:20px;font-weight:700;color:var(--navy);margin-bottom:2px}
+.page-hdr p{font-size:12px;color:var(--g600)}
+.btn-primary{background:var(--teal);color:#fff;border:none;border-radius:7px;padding:9px 18px;font-size:13px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:7px;box-shadow:0 1px 3px rgba(0,99,115,.3)}
+.alert-banner{background:#fff8ec;border:1.5px solid var(--orange);border-radius:8px;padding:10px 16px;display:flex;align-items:center;gap:10px;margin-bottom:16px;color:#7c5000;font-size:13px;font-weight:500}
+.alert-link{margin-left:auto;color:var(--teal);font-weight:600;font-size:12px;cursor:pointer}
+.filter-bar{display:flex;align-items:center;gap:10px;margin-bottom:14px;background:#fff;border:1px solid var(--g200);border-radius:9px;padding:10px 14px}
+.search{display:flex;align-items:center;gap:7px;flex:1}
+.search input{border:none;outline:none;font-size:13px;flex:1;background:transparent;color:var(--charcoal)}
+.divider{width:1px;height:20px;background:var(--g200)}
+.sel{display:flex;align-items:center;gap:5px;padding:5px 10px;border:1px solid var(--g200);border-radius:6px;background:var(--g50);font-size:12px;cursor:pointer;white-space:nowrap}
+.sel .lbl{color:var(--g600)}.sel .val{font-weight:600}.sel .caret{color:var(--g400);font-size:10px;margin-left:2px}
+.card{background:#fff;border:1px solid var(--g200);border-radius:10px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.05)}
+.card-hdr{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid var(--g200);background:var(--g50)}
+.card-title{font-size:13px;font-weight:600;color:var(--charcoal)}
+.card-meta{font-size:11px;color:var(--g600)}
+table{width:100%;border-collapse:collapse}
+thead th{padding:9px 12px;text-align:left;font-size:11px;font-weight:600;color:var(--g600);text-transform:uppercase;letter-spacing:.05em;background:var(--g50);border-bottom:1px solid var(--g200);white-space:nowrap}
+thead th:first-child{padding-left:16px}
+tbody tr{border-bottom:1px solid var(--g100);cursor:pointer;transition:background .1s}
+tbody tr:hover{background:#f0f9fa}
+tbody tr.sel-row{background:#e8f6f8}
+tbody tr.ro{background:#fff9f9}
+tbody tr.ro:hover{background:#fff2f2}
+tbody tr.ro.sel-row{background:#ffe8e8}
+td{padding:10px 12px;font-size:13px;color:var(--charcoal);vertical-align:middle}
+td:first-child{padding-left:16px}
+.iname{font-weight:600;color:var(--navy)}
+.pill{display:inline-block;padding:2px 9px;border-radius:20px;font-size:11px;font-weight:600;white-space:nowrap}
+.cat-bags{background:#fff3e0;color:#e65100}
+.cat-ship{background:#e3f2fd;color:#1565c0}
+.cat-lbl{background:#f3e5f5;color:#6a1b9a}
+.cat-pkg{background:#fce4ec;color:#880e4f}
+.cat-clo{background:#e8f5e9;color:#2e7d32}
+.cat-mer{background:#fff8e1;color:#f57f17}
+.qty-lo{color:var(--red);font-weight:600}
+.qty-ok{font-weight:600}
+.dep-soon{color:var(--red);font-weight:600}
+.dep-ok{color:var(--g600)}
+.dash{color:var(--g400)}
+.status{display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;white-space:nowrap}
+.s-ok{background:var(--ok-bg);color:var(--ok-tx)}
+.s-ro{background:var(--ro-bg);color:var(--ro-tx)}
+.s-oo{background:var(--oo-bg);color:var(--oo-tx)}
+.dot{width:6px;height:6px;border-radius:50%;background:currentColor;flex-shrink:0}
+.btn-ord{background:#fff;border:1px solid var(--g300);color:var(--charcoal);border-radius:5px;padding:4px 10px;font-size:11px;font-weight:600;cursor:pointer;white-space:nowrap}
+.btn-ord-urg{background:var(--red);border-color:var(--red);color:#fff}
+.panel{width:300px;flex-shrink:0;background:#fff;border-left:1px solid var(--g200);display:flex;flex-direction:column;overflow-y:auto}
+.ph{padding:16px 18px 14px;border-bottom:1px solid var(--g200);background:var(--g50)}
+.ph h2{font-size:15px;font-weight:700;color:var(--navy);margin-bottom:3px;line-height:1.3}
+.ph-close{float:right;color:var(--g400);font-size:18px;cursor:pointer;line-height:1;margin-top:1px}
+.ph-sr{display:flex;align-items:center;gap:8px;margin-top:8px}
+.ro-chip{background:var(--ro-bg);color:var(--ro-tx);font-size:11px;font-weight:600;padding:3px 8px;border-radius:4px;display:inline-block;margin-top:8px}
+.pb{padding:16px 18px;flex:1}
+.psec{margin-bottom:18px}
+.psec-lbl{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--g600);margin-bottom:8px}
+.drow{display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid var(--g100);font-size:12px}
+.drow:last-child{border-bottom:none}
+.dlbl{color:var(--g600)}.dval{font-weight:600}
+.dval-urg{color:var(--red);font-weight:600}
+.vendor-email{font-size:11px;color:var(--teal);margin-top:2px}
+.notes-ta{width:100%;border:1px solid var(--g300);border-radius:6px;padding:8px 10px;font-size:12px;color:var(--charcoal);resize:none;height:72px;font-family:inherit;outline:none}
+.pa{padding:14px 18px;border-top:1px solid var(--g200);display:flex;flex-direction:column;gap:8px;background:#fff}
+.btn-full{width:100%;padding:10px;border-radius:7px;font-size:13px;font-weight:600;cursor:pointer;text-align:center;border:none}
+.btn-teal{background:var(--teal);color:#fff}
+.btn-outline{background:#fff;color:var(--charcoal);border:1.5px solid var(--g300)}
+</style>
+</head>
+<body>
+<nav class="topnav">
+  <div class="brand">
+    <div class="logo">B</div>
+    <div><div class="brand-title">BICR Operations</div><div class="brand-sub">Big Island Coffee Roasters</div></div>
+  </div>
+  <div class="nav-tabs">
+    <div class="tab active">Inventory <span class="badge">3</span></div>
+    <div class="tab dim">SOPs</div>
+    <div class="tab dim">Team</div>
+    <div class="tab dim">Reports</div>
+  </div>
+  <div class="nav-right">
+    <span class="ts">Last updated: Today at 9:14 AM</span>
+    <div class="avatar">KS</div>
+  </div>
+</nav>
+<div class="page">
+  <div class="main">
+    <div class="page-hdr">
+      <div><h1>Inventory</h1><p>Track supplies, packaging, and materials — with reorder alerts and depletion estimates</p></div>
+      <button class="btn-primary">✎ Update Counts</button>
+    </div>
+    <div class="alert-banner">
+      ⚠️ <span><strong>3 items below reorder threshold</strong> — action required before lead times become a problem</span>
+      <span class="alert-link">View alerts →</span>
+    </div>
+    <div class="filter-bar">
+      <div class="search"><span>🔍</span><input placeholder="Search items, vendors…" /></div>
+      <div class="divider"></div>
+      <div class="sel"><span class="lbl">Category:</span><span class="val">All</span><span class="caret">▾</span></div>
+      <div class="sel"><span class="lbl">Status:</span><span class="val">All</span><span class="caret">▾</span></div>
+      <div class="sel"><span class="lbl">Vendor:</span><span class="val">All</span><span class="caret">▾</span></div>
+    </div>
+    <div class="card">
+      <div class="card-hdr"><span class="card-title">All Items</span><span class="card-meta">8 items · 3 need attention</span></div>
+      <table>
+        <thead><tr><th>Item Name</th><th>Category</th><th>Vendor</th><th>On Hand</th><th>Burn Rate</th><th>Reorder Point</th><th>Est. Depletion</th><th>Lead Time</th><th>Assigned To</th><th>Status</th><th>Actions</th></tr></thead>
+        <tbody>
+          <tr class="ro sel-row">
+            <td><div class="iname">BICR 8oz Bags</div></td><td><span class="pill cat-bags">Bags</span></td><td>SAVOR</td>
+            <td><span class="qty-lo">32 boxes</span></td><td>6/mo</td><td>30 boxes</td><td class="dep-soon">5 days</td><td>6 months</td><td>Kelleigh</td>
+            <td><span class="status s-ro"><span class="dot"></span>Reorder Now</span></td><td><button class="btn-ord btn-ord-urg">Order →</button></td>
+          </tr>
+          <tr>
+            <td><div class="iname">FedEx Padded Pak</div></td><td><span class="pill cat-ship">Shipping</span></td><td>FedEx</td>
+            <td><span class="qty-ok">21 boxes</span></td><td class="dash">—</td><td>10 boxes</td><td class="dep-ok">—</td><td>2 weeks</td><td>Brandon</td>
+            <td><span class="status s-ok"><span class="dot"></span>OK</span></td><td><button class="btn-ord">Order</button></td>
+          </tr>
+          <tr class="ro">
+            <td><div class="iname">910 Labels</div></td><td><span class="pill cat-lbl">Labels</span></td><td>Primera</td>
+            <td><span class="qty-lo">5 rolls</span></td><td class="dash">—</td><td>8 rolls</td><td class="dep-soon">18 days</td><td>4 weeks</td><td>Lora</td>
+            <td><span class="status s-ro"><span class="dot"></span>Reorder Now</span></td><td><button class="btn-ord btn-ord-urg">Order →</button></td>
+          </tr>
+          <tr>
+            <td><div class="iname">Biodegradable Mailers Lg</div></td><td><span class="pill cat-ship">Shipping</span></td><td>Amazon</td>
+            <td><span class="qty-ok">5 bundles</span></td><td class="dash">—</td><td>3 bundles</td><td class="dep-ok">—</td><td>1 week</td><td>Brandon</td>
+            <td><span class="status s-ok"><span class="dot"></span>OK</span></td><td><button class="btn-ord">Order</button></td>
+          </tr>
+          <tr>
+            <td><div class="iname">BICR 5lb Bags</div></td><td><span class="pill cat-bags">Bags</span></td><td>SAVOR</td>
+            <td><span class="qty-ok">23 boxes</span></td><td>3/mo</td><td>6 boxes</td><td class="dep-ok">23 days</td><td>5 months</td><td>Kelleigh</td>
+            <td><span class="status s-ok"><span class="dot"></span>OK</span></td><td><button class="btn-ord">Order</button></td>
+          </tr>
+          <tr>
+            <td><div class="iname">Packing Tape</div></td><td><span class="pill cat-pkg">Packaging</span></td><td>Veritiv</td>
+            <td><span class="qty-ok">3 boxes</span></td><td class="dash">—</td><td>1 box</td><td class="dep-ok">—</td><td>2 weeks</td><td>Brandon</td>
+            <td><span class="status s-ok"><span class="dot"></span>OK</span></td><td><button class="btn-ord">Order</button></td>
+          </tr>
+          <tr>
+            <td><div class="iname">Veritiv SM6 Box</div></td><td><span class="pill cat-pkg">Packaging</span></td><td>Veritiv</td>
+            <td><span class="qty-ok">11 bundles</span></td><td>2/mo</td><td>9 bundles</td><td class="dep-ok">—</td><td>2 weeks</td><td>Brandon</td>
+            <td><span class="status s-oo"><span class="dot"></span>On Order</span></td><td><button class="btn-ord">Order</button></td>
+          </tr>
+          <tr class="ro">
+            <td><div class="iname">Nick Kuchar 8oz Bags</div></td><td><span class="pill cat-bags">Bags</span></td><td>SAVOR</td>
+            <td><span class="qty-lo">5.5 boxes</span></td><td>4/mo</td><td>10 boxes</td><td class="dep-soon">3 days</td><td>6 months</td><td>Kelleigh</td>
+            <td><span class="status s-ro"><span class="dot"></span>Reorder Now</span></td><td><button class="btn-ord btn-ord-urg">Order →</button></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+  <div class="panel">
+    <div class="ph">
+      <span class="ph-close">✕</span>
+      <div class="pill cat-bags" style="font-size:10px;padding:2px 7px;margin-bottom:6px">Bags</div>
+      <h2>BICR 8oz Bags</h2>
+      <div class="ph-sr"><span class="status s-ro"><span class="dot"></span>Reorder Now</span></div>
+      <div class="ro-chip">⚠ Below reorder point</div>
+    </div>
+    <div class="pb">
+      <div class="psec"><div class="psec-lbl">Vendor</div>
+        <div style="font-weight:600;color:var(--navy);font-size:13px">SAVOR</div>
+        <div class="vendor-email">tessa@savorbrands.com</div>
+      </div>
+      <div class="psec"><div class="psec-lbl">Stock Details</div>
+        <div class="drow"><span class="dlbl">On Hand</span><span class="dval dval-urg">32 boxes</span></div>
+        <div class="drow"><span class="dlbl">Units / Box</span><span class="dval">1,000 units</span></div>
+        <div class="drow"><span class="dlbl">Burn Rate</span><span class="dval">6 boxes / mo</span></div>
+        <div class="drow"><span class="dlbl">Reorder Point</span><span class="dval">30 boxes</span></div>
+        <div class="drow"><span class="dlbl">Est. Depletion</span><span class="dval dval-urg">~5 days</span></div>
+        <div class="drow"><span class="dlbl">Assigned To</span><span class="dval">Kelleigh</span></div>
+      </div>
+      <div class="psec"><div class="psec-lbl">Order Info</div>
+        <div class="drow"><span class="dlbl">Lead Time</span><span class="dval">6 months</span></div>
+        <div class="drow"><span class="dlbl">Last Order Date</span><span class="dval" style="color:var(--g400)">Unknown</span></div>
+      </div>
+      <div class="psec"><div class="psec-lbl">Notes</div>
+        <textarea class="notes-ta" placeholder="Add order notes…"></textarea>
+      </div>
+    </div>
+    <div class="pa">
+      <button class="btn-full btn-teal">✓ Mark as Ordered</button>
+      <button class="btn-full btn-outline">✎ Edit Item</button>
+    </div>
+  </div>
+</div>
+</body>
+</html>
