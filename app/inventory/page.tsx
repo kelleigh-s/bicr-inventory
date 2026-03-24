@@ -1,14 +1,12 @@
 "use client";
 
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useMemo, useCallback } from "react";
 import NavBar from "@/components/nav/NavBar";
 import InventoryTable from "@/components/inventory/InventoryTable";
 import InventoryFilters from "@/components/inventory/InventoryFilters";
 import AlertBanner from "@/components/inventory/AlertBanner";
+import DetailPanel from "@/components/inventory/DetailPanel";
 import type { InventoryItem, Vendor } from "@/lib/supabase/types";
-
-// TODO: Task 12 — import DetailPanel once created
-// import DetailPanel from "@/components/inventory/DetailPanel";
 
 export default function InventoryPage() {
   const [items, setItems] = useState<InventoryItem[]>([]);
@@ -22,38 +20,37 @@ export default function InventoryPage() {
   const [vendorFilter, setVendorFilter] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
 
-  // Detail panel state — TODO: Task 12 will use this
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const [selectedItem, setSelectedItem] = useState<InventoryItem | null>(null);
+  // Detail panel state
+  const [selectedItemId, setSelectedItemId] = useState<string | null>(null);
+
+  const fetchData = useCallback(async () => {
+    try {
+      const [itemsRes, vendorsRes] = await Promise.all([
+        fetch("/api/items"),
+        fetch("/api/vendors"),
+      ]);
+
+      if (!itemsRes.ok) throw new Error("Failed to fetch items");
+      if (!vendorsRes.ok) throw new Error("Failed to fetch vendors");
+
+      const [itemsData, vendorsData] = await Promise.all([
+        itemsRes.json(),
+        vendorsRes.json(),
+      ]);
+
+      setItems(itemsData);
+      setVendors(vendorsData);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Unknown error");
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
   // Fetch data on mount
   useEffect(() => {
-    async function fetchData() {
-      try {
-        const [itemsRes, vendorsRes] = await Promise.all([
-          fetch("/api/items"),
-          fetch("/api/vendors"),
-        ]);
-
-        if (!itemsRes.ok) throw new Error("Failed to fetch items");
-        if (!vendorsRes.ok) throw new Error("Failed to fetch vendors");
-
-        const [itemsData, vendorsData] = await Promise.all([
-          itemsRes.json(),
-          vendorsRes.json(),
-        ]);
-
-        setItems(itemsData);
-        setVendors(vendorsData);
-      } catch (err) {
-        setError(err instanceof Error ? err.message : "Unknown error");
-      } finally {
-        setLoading(false);
-      }
-    }
-
     fetchData();
-  }, []);
+  }, [fetchData]);
 
   // Reorder count from unfiltered items
   const reorderCount = useMemo(
@@ -84,7 +81,16 @@ export default function InventoryPage() {
   }
 
   function handleRowClick(item: InventoryItem) {
-    setSelectedItem(item);
+    setSelectedItemId(item.id);
+  }
+
+  function handlePanelClose() {
+    setSelectedItemId(null);
+  }
+
+  function handleDataChange() {
+    setSelectedItemId(null);
+    fetchData();
   }
 
   return (
@@ -149,15 +155,17 @@ export default function InventoryPage() {
         ) : (
           <InventoryTable items={filteredItems} onRowClick={handleRowClick} />
         )}
-
-        {/* TODO: Task 12 — render DetailPanel once created */}
-        {/* {selectedItem && (
-          <DetailPanel
-            item={selectedItem}
-            onClose={() => setSelectedItem(null)}
-          />
-        )} */}
       </main>
+
+      {/* Detail Panel */}
+      {selectedItemId && (
+        <DetailPanel
+          itemId={selectedItemId}
+          vendors={vendors}
+          onClose={handlePanelClose}
+          onDataChange={handleDataChange}
+        />
+      )}
     </div>
   );
 }
