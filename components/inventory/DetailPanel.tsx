@@ -14,6 +14,7 @@ import VariantMatrix from "./VariantMatrix";
 import MarkAsOrderedModal from "@/components/modals/MarkAsOrderedModal";
 import MarkAsReceivedModal from "@/components/modals/MarkAsReceivedModal";
 import CloseOrderModal from "@/components/modals/CloseOrderModal";
+import ItemFormModal from "@/components/modals/ItemFormModal";
 
 interface DetailPanelProps {
   itemId: string;
@@ -40,7 +41,7 @@ const CATEGORY_BADGE =
 
 export default function DetailPanel({
   itemId,
-  vendors: _vendors, // eslint-disable-line @typescript-eslint/no-unused-vars
+  vendors,
   onClose,
   onDataChange,
 }: DetailPanelProps) {
@@ -51,6 +52,7 @@ export default function DetailPanel({
   const [showOrderedModal, setShowOrderedModal] = useState(false);
   const [showReceivedModal, setShowReceivedModal] = useState(false);
   const [showCloseOrderModal, setShowCloseOrderModal] = useState(false);
+  const [showEditForm, setShowEditForm] = useState(false);
 
   async function loadDetail() {
     setLoading(true);
@@ -248,11 +250,20 @@ export default function DetailPanel({
 
                   <button
                     className="px-3 py-1.5 text-sm font-medium rounded-md border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 transition-colors"
-                    onClick={() => {
-                      /* TODO: Task 18 — Edit Item */
-                    }}
+                    onClick={() => setShowEditForm(true)}
                   >
                     Edit Item
+                  </button>
+
+                  <button
+                    onClick={async () => {
+                      if (!confirm("Archive this item? It will be hidden from the table.")) return;
+                      await fetch(`/api/items/${item.id}/archive`, { method: "PATCH" });
+                      onDataChange();
+                    }}
+                    className="px-4 py-2 border border-red-300 text-red-600 rounded-md text-sm hover:bg-red-50 transition-colors"
+                  >
+                    Archive
                   </button>
                 </div>
               </div>
@@ -322,6 +333,19 @@ export default function DetailPanel({
           order={oldestPending}
           onClose={() => setShowCloseOrderModal(false)}
           onSuccess={handleModalSuccess}
+        />
+      )}
+
+      {showEditForm && item && (
+        <ItemFormModal
+          item={item}
+          vendors={vendors}
+          onClose={() => setShowEditForm(false)}
+          onSuccess={() => {
+            setShowEditForm(false);
+            loadDetail();
+            onDataChange();
+          }}
         />
       )}
     </>

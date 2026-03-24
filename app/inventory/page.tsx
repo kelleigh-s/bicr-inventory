@@ -7,6 +7,7 @@ import InventoryFilters from "@/components/inventory/InventoryFilters";
 import AlertBanner from "@/components/inventory/AlertBanner";
 import DetailPanel from "@/components/inventory/DetailPanel";
 import UpdateCountsFlow from "@/components/inventory/UpdateCountsFlow";
+import ItemFormModal from "@/components/modals/ItemFormModal";
 import type { InventoryItem, Vendor } from "@/lib/supabase/types";
 
 export default function InventoryPage() {
@@ -26,6 +27,9 @@ export default function InventoryPage() {
 
   // Update counts flow state
   const [showUpdateCounts, setShowUpdateCounts] = useState(false);
+
+  // Item form state
+  const [showItemForm, setShowItemForm] = useState(false);
 
   const fetchData = useCallback(async () => {
     try {
@@ -119,9 +123,7 @@ export default function InventoryPage() {
             </button>
             <button
               className="px-4 py-2 text-sm font-medium rounded-md bg-bicr-teal text-white hover:bg-bicr-navy transition-colors"
-              onClick={() => {
-                /* TODO: Task 18 — open Add Item modal */
-              }}
+              onClick={() => setShowItemForm(true)}
             >
               + Add Item
             </button>
@@ -177,6 +179,18 @@ export default function InventoryPage() {
           vendors={vendors}
           onClose={handlePanelClose}
           onDataChange={handleDataChange}
+        />
+      )}
+
+      {/* Add Item Modal */}
+      {showItemForm && (
+        <ItemFormModal
+          vendors={vendors}
+          onClose={() => setShowItemForm(false)}
+          onSuccess={() => {
+            setShowItemForm(false);
+            fetchData();
+          }}
         />
       )}
     </div>
