@@ -7,6 +7,7 @@ import { VARIANT_CATEGORIES } from "@/lib/inventory/constants";
 import type { ItemCategory } from "@/lib/inventory/constants";
 import AuditLog from "./AuditLog";
 import OrdersList from "./OrdersList";
+import VariantMatrix from "./VariantMatrix";
 
 // Lazy imports for modals (imported by parent after creation — passed as props for now)
 // Modals are wired via state lifted here
@@ -256,15 +257,17 @@ export default function DetailPanel({
                 </div>
               </div>
 
-              {/* Variant matrix placeholder */}
+              {/* Variant matrix */}
               {isVariant && (
                 <div>
                   <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">
                     Variant Stock
                   </h3>
-                  <p className="text-sm text-gray-400 italic">
-                    Variant matrix — coming in Task 17.
-                  </p>
+                  <VariantMatrix
+                    itemId={item.id}
+                    variants={variants}
+                    onUpdate={loadDetail}
+                  />
                 </div>
               )}
 
