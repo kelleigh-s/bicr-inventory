@@ -6,6 +6,7 @@ import InventoryTable from "@/components/inventory/InventoryTable";
 import InventoryFilters from "@/components/inventory/InventoryFilters";
 import AlertBanner from "@/components/inventory/AlertBanner";
 import DetailPanel from "@/components/inventory/DetailPanel";
+import UpdateCountsFlow from "@/components/inventory/UpdateCountsFlow";
 import type { InventoryItem, Vendor } from "@/lib/supabase/types";
 
 export default function InventoryPage() {
@@ -22,6 +23,9 @@ export default function InventoryPage() {
 
   // Detail panel state
   const [selectedItemId, setSelectedItemId] = useState<string | null>(null);
+
+  // Update counts flow state
+  const [showUpdateCounts, setShowUpdateCounts] = useState(false);
 
   const fetchData = useCallback(async () => {
     try {
@@ -109,9 +113,7 @@ export default function InventoryPage() {
           <div className="flex gap-3">
             <button
               className="px-4 py-2 text-sm font-medium rounded-md border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 transition-colors"
-              onClick={() => {
-                /* TODO: Task 16 — open Update Counts modal */
-              }}
+              onClick={() => setShowUpdateCounts(true)}
             >
               Update Counts
             </button>
@@ -156,6 +158,17 @@ export default function InventoryPage() {
           <InventoryTable items={filteredItems} onRowClick={handleRowClick} />
         )}
       </main>
+
+      {/* Update Counts Flow */}
+      {showUpdateCounts && (
+        <UpdateCountsFlow
+          onClose={() => setShowUpdateCounts(false)}
+          onComplete={() => {
+            setShowUpdateCounts(false);
+            fetchData();
+          }}
+        />
+      )}
 
       {/* Detail Panel */}
       {selectedItemId && (
