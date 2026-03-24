@@ -211,7 +211,10 @@ export default function UpdateCountsFlow({ onClose, onComplete }: UpdateCountsFl
                 </div>
 
                 {/* Item name */}
-                <h3 className="text-xl font-bold text-bicr-navy">{currentItem.name}</h3>
+                <div>
+                  <p className="text-xs text-gray-400 uppercase tracking-wide mb-0.5">Counting</p>
+                  <h3 className="text-xl font-bold text-bicr-navy">{currentItem.name}</h3>
+                </div>
 
                 {/* Last count info box */}
                 <div className="bg-gray-50 border border-gray-200 rounded-md px-4 py-3 text-sm text-gray-600 space-y-1">

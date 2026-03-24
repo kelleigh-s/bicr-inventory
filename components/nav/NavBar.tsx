@@ -10,9 +10,9 @@ interface NavBarProps {
 
 const TABS = [
   { name: "Inventory", href: "/inventory", enabled: true },
-  { name: "SOPs", href: "#", enabled: false },
-  { name: "Team", href: "#", enabled: false },
-  { name: "Reports", href: "#", enabled: false },
+  { name: "SOPs", href: "/sops", enabled: true },
+  { name: "Team", href: "/team", enabled: true },
+  { name: "Reports", href: "/reports", enabled: true },
 ];
 
 export default function NavBar({ reorderCount }: NavBarProps) {

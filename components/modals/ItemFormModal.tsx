@@ -6,8 +6,8 @@ import {
   ITEM_CATEGORIES,
   BURN_RATE_PERIODS,
   REORDER_ACTION_TYPES,
-  type ItemCategory,
 } from "@/lib/inventory/constants";
+import VendorFormModal from "./VendorFormModal";
 
 interface Props {
   item?: Item | null;
@@ -16,11 +16,16 @@ interface Props {
   onSuccess: () => void;
 }
 
+const ADD_NEW_CATEGORY = "__add_new__";
+const ADD_NEW_VENDOR = "__add_new__";
+
 export default function ItemFormModal({ item, vendors, onClose, onSuccess }: Props) {
   const isEdit = !!item;
 
   const [name, setName] = useState(item?.name ?? "");
-  const [category, setCategory] = useState<ItemCategory>(item?.category ?? "bags");
+  const [category, setCategory] = useState<string>(item?.category ?? "bags");
+  const [customCategory, setCustomCategory] = useState("");
+  const [showCustomCategory, setShowCustomCategory] = useState(false);
   const [vendorId, setVendorId] = useState(item?.vendor_id ?? "");
   const [unitLabel, setUnitLabel] = useState(item?.unit_label ?? "");
   const [unitsPerPackage, setUnitsPerPackage] = useState(
@@ -42,12 +47,60 @@ export default function ItemFormModal({ item, vendors, onClose, onSuccess }: Pro
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // Inline vendor creation
+  const [showVendorForm, setShowVendorForm] = useState(false);
+  const [localVendors, setLocalVendors] = useState<Vendor[]>(vendors);
+
+  function handleCategoryChange(value: string) {
+    if (value === ADD_NEW_CATEGORY) {
+      setShowCustomCategory(true);
+      setCategory("");
+      setCustomCategory("");
+    } else {
+      setShowCustomCategory(false);
+      setCategory(value);
+      setCustomCategory("");
+    }
+  }
+
+  function handleVendorChange(value: string) {
+    if (value === ADD_NEW_VENDOR) {
+      setShowVendorForm(true);
+    } else {
+      setVendorId(value);
+    }
+  }
+
+  function handleVendorCreated() {
+    // Refetch vendors and select the new one
+    setShowVendorForm(false);
+    fetch("/api/vendors")
+      .then((res) => res.json())
+      .then((data: Vendor[]) => {
+        setLocalVendors(data);
+        // Select the most recently created vendor (last in list)
+        if (data.length > 0) {
+          const newest = data[data.length - 1];
+          setVendorId(newest.id);
+        }
+      })
+      .catch(() => {
+        // Silently fail — user can still select manually
+      });
+  }
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
 
     if (!name.trim()) {
       setError("Name is required.");
+      return;
+    }
+
+    const finalCategory = showCustomCategory ? customCategory.trim().toLowerCase() : category;
+    if (!finalCategory) {
+      setError("Category is required.");
       return;
     }
 
@@ -58,7 +111,7 @@ export default function ItemFormModal({ item, vendors, onClose, onSuccess }: Pro
 
     const body = {
       name: name.trim(),
-      category,
+      category: finalCategory,
       vendor_id: vendorId || null,
       unit_label: unitLabel.trim() || null,
       units_per_package: unitsPerPackage ? Number(unitsPerPackage) : null,
@@ -97,257 +150,295 @@ export default function ItemFormModal({ item, vendors, onClose, onSuccess }: Pro
   }
 
   return (
-    <div className="fixed inset-0 z-60 flex items-center justify-center px-4">
-      <div className="absolute inset-0 bg-black/40" onClick={onClose} aria-hidden="true" />
-      <div className="relative bg-white rounded-lg shadow-xl w-full max-w-lg max-h-[90vh] flex flex-col">
-        {/* Header */}
-        <div className="flex items-center justify-between px-5 py-4 border-b border-gray-200">
-          <h2 className="text-base font-semibold text-bicr-navy">
-            {isEdit ? "Edit Item" : "Add Item"}
-          </h2>
-          <button
-            onClick={onClose}
-            className="text-gray-400 hover:text-gray-600 text-xl leading-none"
-            aria-label="Close"
+    <>
+      <div className="fixed inset-0 z-60 flex items-center justify-center px-4">
+        <div className="absolute inset-0 bg-black/40" onClick={onClose} aria-hidden="true" />
+        <div className="relative bg-white rounded-lg shadow-xl w-full max-w-lg max-h-[90vh] flex flex-col">
+          {/* Header */}
+          <div className="flex items-center justify-between px-5 py-4 border-b border-gray-200">
+            <h2 className="text-base font-semibold text-bicr-navy">
+              {isEdit ? "Edit Item" : "Add Item"}
+            </h2>
+            <button
+              onClick={onClose}
+              className="text-gray-400 hover:text-gray-600 text-xl leading-none"
+              aria-label="Close"
+            >
+              &times;
+            </button>
+          </div>
+
+          {/* Scrollable form body */}
+          <form
+            onSubmit={handleSubmit}
+            className="overflow-y-auto flex-1 px-5 py-4 space-y-4"
           >
-            &times;
-          </button>
-        </div>
+            {error && <p className="text-sm text-red-500">{error}</p>}
 
-        {/* Scrollable form body */}
-        <form
-          onSubmit={handleSubmit}
-          className="overflow-y-auto flex-1 px-5 py-4 space-y-4"
-        >
-          {error && <p className="text-sm text-red-500">{error}</p>}
-
-          {/* Name */}
-          <div>
-            <label className="block text-xs font-medium text-gray-700 mb-1">
-              Name <span className="text-red-500">*</span>
-            </label>
-            <input
-              type="text"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-bicr-teal"
-              placeholder="Item name"
-              required
-            />
-          </div>
-
-          {/* Category */}
-          <div>
-            <label className="block text-xs font-medium text-gray-700 mb-1">
-              Category <span className="text-red-500">*</span>
-            </label>
-            <select
-              value={category}
-              onChange={(e) => setCategory(e.target.value as ItemCategory)}
-              disabled={isEdit}
-              className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-bicr-teal disabled:bg-gray-100 disabled:text-gray-500"
-            >
-              {ITEM_CATEGORIES.map((c) => (
-                <option key={c} value={c}>
-                  {c}
-                </option>
-              ))}
-            </select>
-            {isEdit && (
-              <p className="text-xs text-gray-400 mt-1">
-                Category cannot be changed after creation.
-              </p>
-            )}
-          </div>
-
-          {/* Vendor */}
-          <div>
-            <label className="block text-xs font-medium text-gray-700 mb-1">Vendor</label>
-            <select
-              value={vendorId}
-              onChange={(e) => setVendorId(e.target.value)}
-              className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-bicr-teal"
-            >
-              <option value="">— None —</option>
-              {vendors.map((v) => (
-                <option key={v.id} value={v.id}>
-                  {v.name}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          {/* Unit label + Units per package */}
-          <div className="grid grid-cols-2 gap-3">
+            {/* Name */}
             <div>
               <label className="block text-xs font-medium text-gray-700 mb-1">
-                Unit Label
+                Name <span className="text-red-500">*</span>
               </label>
               <input
                 type="text"
-                value={unitLabel}
-                onChange={(e) => setUnitLabel(e.target.value)}
+                value={name}
+                onChange={(e) => setName(e.target.value)}
                 className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-bicr-teal"
-                placeholder="e.g. bag, box"
+                placeholder="Item name"
+                required
               />
             </div>
-            <div>
-              <label className="block text-xs font-medium text-gray-700 mb-1">
-                Units per Package
-              </label>
-              <input
-                type="number"
-                min="0"
-                value={unitsPerPackage}
-                onChange={(e) => setUnitsPerPackage(e.target.value)}
-                className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-bicr-teal"
-                placeholder="0"
-              />
-            </div>
-          </div>
 
-          {/* Burn rate + period */}
-          <div className="grid grid-cols-2 gap-3">
+            {/* Category */}
             <div>
               <label className="block text-xs font-medium text-gray-700 mb-1">
-                Burn Rate
+                Category <span className="text-red-500">*</span>
               </label>
-              <input
-                type="number"
-                min="0"
-                step="any"
-                value={burnRate}
-                onChange={(e) => setBurnRate(e.target.value)}
-                className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-bicr-teal"
-                placeholder="0"
-              />
+              {!showCustomCategory ? (
+                <select
+                  value={category}
+                  onChange={(e) => handleCategoryChange(e.target.value)}
+                  disabled={isEdit}
+                  className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-bicr-teal disabled:bg-gray-100 disabled:text-gray-500"
+                >
+                  {ITEM_CATEGORIES.map((c) => (
+                    <option key={c} value={c}>
+                      {c}
+                    </option>
+                  ))}
+                  {!isEdit && (
+                    <option value={ADD_NEW_CATEGORY}>+ Add New Category</option>
+                  )}
+                </select>
+              ) : (
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    autoFocus
+                    value={customCategory}
+                    onChange={(e) => setCustomCategory(e.target.value)}
+                    className="flex-1 border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-bicr-teal"
+                    placeholder="New category name"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowCustomCategory(false);
+                      setCategory("bags");
+                      setCustomCategory("");
+                    }}
+                    className="px-3 py-2 text-xs font-medium text-gray-500 hover:text-gray-700 border border-gray-300 rounded-md"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              )}
+              {isEdit && (
+                <p className="text-xs text-gray-400 mt-1">
+                  Category cannot be changed after creation.
+                </p>
+              )}
             </div>
+
+            {/* Vendor */}
             <div>
-              <label className="block text-xs font-medium text-gray-700 mb-1">
-                Burn Rate Period
-              </label>
+              <label className="block text-xs font-medium text-gray-700 mb-1">Vendor</label>
               <select
-                value={burnRatePeriod}
-                onChange={(e) => setBurnRatePeriod(e.target.value)}
+                value={vendorId}
+                onChange={(e) => handleVendorChange(e.target.value)}
                 className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-bicr-teal"
               >
                 <option value="">— None —</option>
-                {BURN_RATE_PERIODS.map((p) => (
-                  <option key={p} value={p}>
-                    {p}
+                {localVendors.map((v) => (
+                  <option key={v.id} value={v.id}>
+                    {v.name}
+                  </option>
+                ))}
+                <option value={ADD_NEW_VENDOR}>+ Add New Vendor</option>
+              </select>
+            </div>
+
+            {/* Unit label + Units per package */}
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="block text-xs font-medium text-gray-700 mb-1">
+                  Unit Label
+                </label>
+                <input
+                  type="text"
+                  value={unitLabel}
+                  onChange={(e) => setUnitLabel(e.target.value)}
+                  className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-bicr-teal"
+                  placeholder="e.g. bag, box"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-gray-700 mb-1">
+                  Units per Package
+                </label>
+                <input
+                  type="number"
+                  min="0"
+                  value={unitsPerPackage}
+                  onChange={(e) => setUnitsPerPackage(e.target.value)}
+                  className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-bicr-teal"
+                  placeholder="0"
+                />
+              </div>
+            </div>
+
+            {/* Burn rate + period */}
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="block text-xs font-medium text-gray-700 mb-1">
+                  Burn Rate
+                </label>
+                <input
+                  type="number"
+                  min="0"
+                  step="any"
+                  value={burnRate}
+                  onChange={(e) => setBurnRate(e.target.value)}
+                  className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-bicr-teal"
+                  placeholder="0"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-gray-700 mb-1">
+                  Burn Rate Period
+                </label>
+                <select
+                  value={burnRatePeriod}
+                  onChange={(e) => setBurnRatePeriod(e.target.value)}
+                  className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-bicr-teal"
+                >
+                  <option value="">— None —</option>
+                  {BURN_RATE_PERIODS.map((p) => (
+                    <option key={p} value={p}>
+                      {p}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
+            {/* Reorder point + Lead time */}
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="block text-xs font-medium text-gray-700 mb-1">
+                  Reorder Point
+                </label>
+                <input
+                  type="number"
+                  min="0"
+                  value={reorderPoint}
+                  onChange={(e) => setReorderPoint(e.target.value)}
+                  className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-bicr-teal"
+                  placeholder="0"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-gray-700 mb-1">
+                  Lead Time (days)
+                </label>
+                <input
+                  type="number"
+                  min="0"
+                  value={leadTimeDays}
+                  onChange={(e) => setLeadTimeDays(e.target.value)}
+                  className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-bicr-teal"
+                  placeholder="0"
+                />
+              </div>
+            </div>
+
+            {/* Assigned to */}
+            <div>
+              <label className="block text-xs font-medium text-gray-700 mb-1">
+                Assigned To
+              </label>
+              <input
+                type="text"
+                value={assignedTo}
+                onChange={(e) => setAssignedTo(e.target.value)}
+                className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-bicr-teal"
+                placeholder="Team member name"
+              />
+            </div>
+
+            {/* Reorder action type + value */}
+            <div>
+              <label className="block text-xs font-medium text-gray-700 mb-1">
+                Reorder Action
+              </label>
+              <select
+                value={reorderActionType}
+                onChange={(e) => setReorderActionType(e.target.value)}
+                className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-bicr-teal mb-2"
+              >
+                {REORDER_ACTION_TYPES.map((t) => (
+                  <option key={t} value={t}>
+                    {t}
                   </option>
                 ))}
               </select>
-            </div>
-          </div>
-
-          {/* Reorder point + Lead time */}
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="block text-xs font-medium text-gray-700 mb-1">
-                Reorder Point
-              </label>
               <input
-                type="number"
-                min="0"
-                value={reorderPoint}
-                onChange={(e) => setReorderPoint(e.target.value)}
-                className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-bicr-teal"
-                placeholder="0"
+                type="text"
+                value={reorderActionValue}
+                onChange={(e) => setReorderActionValue(e.target.value)}
+                disabled={reorderActionType === "none"}
+                className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-bicr-teal disabled:bg-gray-100 disabled:text-gray-400"
+                placeholder={
+                  reorderActionType === "url"
+                    ? "https://..."
+                    : reorderActionType === "email"
+                    ? "vendor@example.com"
+                    : "N/A"
+                }
               />
             </div>
+
+            {/* Notes */}
             <div>
-              <label className="block text-xs font-medium text-gray-700 mb-1">
-                Lead Time (days)
-              </label>
-              <input
-                type="number"
-                min="0"
-                value={leadTimeDays}
-                onChange={(e) => setLeadTimeDays(e.target.value)}
-                className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-bicr-teal"
-                placeholder="0"
+              <label className="block text-xs font-medium text-gray-700 mb-1">Notes</label>
+              <textarea
+                value={notes}
+                onChange={(e) => setNotes(e.target.value)}
+                rows={3}
+                className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-bicr-teal resize-none"
+                placeholder="Any relevant notes…"
               />
             </div>
-          </div>
 
-          {/* Assigned to */}
-          <div>
-            <label className="block text-xs font-medium text-gray-700 mb-1">
-              Assigned To
-            </label>
-            <input
-              type="text"
-              value={assignedTo}
-              onChange={(e) => setAssignedTo(e.target.value)}
-              className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-bicr-teal"
-              placeholder="Team member name"
-            />
-          </div>
-
-          {/* Reorder action type + value */}
-          <div>
-            <label className="block text-xs font-medium text-gray-700 mb-1">
-              Reorder Action
-            </label>
-            <select
-              value={reorderActionType}
-              onChange={(e) => setReorderActionType(e.target.value)}
-              className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-bicr-teal mb-2"
-            >
-              {REORDER_ACTION_TYPES.map((t) => (
-                <option key={t} value={t}>
-                  {t}
-                </option>
-              ))}
-            </select>
-            <input
-              type="text"
-              value={reorderActionValue}
-              onChange={(e) => setReorderActionValue(e.target.value)}
-              disabled={reorderActionType === "none"}
-              className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-bicr-teal disabled:bg-gray-100 disabled:text-gray-400"
-              placeholder={
-                reorderActionType === "url"
-                  ? "https://..."
-                  : reorderActionType === "email"
-                  ? "vendor@example.com"
-                  : "N/A"
-              }
-            />
-          </div>
-
-          {/* Notes */}
-          <div>
-            <label className="block text-xs font-medium text-gray-700 mb-1">Notes</label>
-            <textarea
-              value={notes}
-              onChange={(e) => setNotes(e.target.value)}
-              rows={3}
-              className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-bicr-teal resize-none"
-              placeholder="Any relevant notes…"
-            />
-          </div>
-
-          {/* Footer */}
-          <div className="flex justify-end gap-3 pt-2 pb-1">
-            <button
-              type="button"
-              onClick={onClose}
-              className="px-4 py-2 text-sm font-medium rounded-md border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 transition-colors"
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              disabled={submitting}
-              className="px-4 py-2 text-sm font-medium rounded-md bg-bicr-teal text-white hover:bg-bicr-navy transition-colors disabled:opacity-50"
-            >
-              {submitting ? "Saving…" : isEdit ? "Save Changes" : "Add Item"}
-            </button>
-          </div>
-        </form>
+            {/* Footer */}
+            <div className="flex justify-end gap-3 pt-2 pb-1">
+              <button
+                type="button"
+                onClick={onClose}
+                className="px-4 py-2 text-sm font-medium rounded-md border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                disabled={submitting}
+                className="px-4 py-2 text-sm font-medium rounded-md bg-bicr-teal text-white hover:bg-bicr-navy transition-colors disabled:opacity-50"
+              >
+                {submitting ? "Saving…" : isEdit ? "Save Changes" : "Add Item"}
+              </button>
+            </div>
+          </form>
+        </div>
       </div>
-    </div>
+
+      {/* Inline Vendor Creation Modal */}
+      {showVendorForm && (
+        <VendorFormModal
+          onClose={() => setShowVendorForm(false)}
+          onSuccess={handleVendorCreated}
+        />
+      )}
+    </>
   );
 }
